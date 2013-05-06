@@ -25,3 +25,8 @@ License. My suggestion is we try and improve it, adding the things people in 343
 multiple windows open etc). One issue with this is that it is written in Delphi, which I imagine none of us know.
 So a first step could be to start poking around, reading the code in order to get some understanding of it.
 The souce code can be found here - http://sourceforge.net/p/bricxcc/code/HEAD/tree/
+
+=====================
+
+6/6/2013
+Yes we have certainly stalled. Unfortunately I just haven't had the time to get things started by giving everyone a poke. Thanks for the push Gene. You're idea above is a good one, but I'd like to suggest a small change. The Bricxcc IDE is quite a large system, but it basically makes use of NXC and NBC as the compiler for the lego robots. I think we can simply use that compiler to do a lot of the heavy lifting and build an IDE on top of it (basically what Bricxcc does). We can do that by incorporating the NXC/NBC compilers into any distribution. This has the benefit of not being tied to delphi. We can then choose either a cross-platform environment for building the IDE (e.g. C++ with QT, or Python with one of it's toolkits), or specifically choose Mac (Objective-C with the OSX framework). My preference would be for a cross-platform environment (with a slight preference for python because I know how to get something started quickly).
