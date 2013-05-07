@@ -17,7 +17,7 @@ Once we have those two bits of information, we can decide what the next steps sh
 =====================
 
 
-5/6/2013
+5th May 2013
 This project seems to have stalled.
 We need to make a decision about what this group is actually doing.
 The environment used in COSC343 has publically avaliable source code, which has been released under the Mozilla Public
@@ -28,5 +28,11 @@ The souce code can be found here - http://sourceforge.net/p/bricxcc/code/HEAD/tr
 
 =====================
 
-6/6/2013
+6th May 2013
 Yes we have certainly stalled. Unfortunately I just haven't had the time to get things started by giving everyone a poke. Thanks for the push Gene. You're idea above is a good one, but I'd like to suggest a small change. The Bricxcc IDE is quite a large system, but it basically makes use of NXC and NBC as the compiler for the lego robots. I think we can simply use that compiler to do a lot of the heavy lifting and build an IDE on top of it (basically what Bricxcc does). We can do that by incorporating the NXC/NBC compilers into any distribution. This has the benefit of not being tied to delphi. We can then choose either a cross-platform environment for building the IDE (e.g. C++ with QT, or Python with one of it's toolkits), or specifically choose Mac (Objective-C with the OSX framework). My preference would be for a cross-platform environment (with a slight preference for python because I know how to get something started quickly).
+
+======================
+
+7th May 2013
+I have added the nbc/nxc compiler (macos executable) to the project in the directory NBC_Mac. We should be able to use this initially at least with a fairly straightforward editor.
+
