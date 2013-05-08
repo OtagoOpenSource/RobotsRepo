@@ -36,3 +36,11 @@ Yes we have certainly stalled. Unfortunately I just haven't had the time to get 
 7th May 2013
 I have added the nbc/nxc compiler (macos executable) to the project in the directory NBC_Mac. We should be able to use this initially at least with a fairly straightforward editor.
 
+====================
+
+2013-05-08
+An IDE written in Python based on top of the existing compilers meets our goals and uses skils we already have or we can
+quickly develop (Python syntax easy, C-like syntax not so much). Would we write a Python editor from scratch, or could we
+utilise something from http://http://wiki.python.org/moin/PythonEditors ? As a random choice from this list, wxKonTEXT
+doesn't look horrible - http://soft.kaworu.it/img/winzozz.png - source and binaries available here:
+http://soft.kaworu.it/wxKonTEXTen.htm.
