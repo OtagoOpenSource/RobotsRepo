@@ -44,3 +44,9 @@ quickly develop (Python syntax easy, C-like syntax not so much). Would we write 
 utilise something from http://http://wiki.python.org/moin/PythonEditors ? As a random choice from this list, wxKonTEXT
 doesn't look horrible - http://soft.kaworu.it/img/winzozz.png - source and binaries available here:
 http://soft.kaworu.it/wxKonTEXTen.htm.
+
+
+====================
+
+9th May 2013
+It is actually not that difficult to write a simple editor given a half-decent GUI toolkit. Just to show what's possible, I had a spare hour and whipped up the very simple editor in Python_src. I'm not suggesting that we necessarily adopt this create our own, but I think it would be quite cool and in some respects more interesting to do so.
