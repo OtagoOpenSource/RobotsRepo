@@ -7,6 +7,10 @@ import Tkinter
 import ScrolledText
 import tkFileDialog
 import subprocess
+import tkMessageBox
+
+# a global singleton list of windows
+AllWindows = []
 
 class SimpleEditor:
     """
@@ -45,6 +49,11 @@ class SimpleEditor:
 
         # initialise the file associated with this window as ''
         self.filename = ''
+        self.textWidget.edit_modified(False)
+
+        # add the new object to the list of all windows.
+        AllWindows.append(self)
+        
 
     
     def new_command(self):
@@ -67,6 +76,7 @@ class SimpleEditor:
                 contents = file.read()
                 self.textWidget.insert(Tkinter.END, contents)
                 file.close()
+                self.textWidget.edit_modified(False)
         else:
             editor = self.new_command()
 
@@ -74,42 +84,76 @@ class SimpleEditor:
         """
         Save the current contents to the current file.
         """
-        if self.filename=='':
-            self.saveas_command()
+        if self.filename=='' or self.filename==():
+            return self.saveas_command()
         else:
             file = open(self.filename, "w")
             contents = self.textWidget.get("1.0", Tkinter.END)[:-1]
             file.write(contents)
             file.close()
+            return True
 
     def saveas_command(self):
         """
         Save the current contents to an as yet unnamed file
         """
         self.filename = tkFileDialog.asksaveasfilename()
-        if self.filename != '':
+        # sometimes it returns a tuple
+        if self.filename != '' and self.filename != ():
+            print self.filename
             file = open(self.filename, "w")
             contents = self.textWidget.get("1.0", Tkinter.END)[:-1]
             file.write(contents)
             file.close()
+            self.textWidget.edit_modified(False)
+            return True
+        else:
+            return False
+
+    def really_quit(self):
+        del AllWindows[AllWindows.index(self)]
+        print AllWindows
+        self.parent.destroy()
+        print "Made it here"
+        return True
 
     def close_command(self):
         """
         Close this file. Should check to see if saving is needed.
-        Warning: this creates strange behaviour with multiple windows.
-        A more considered system is needed.
         """
         if self.textWidget.edit_modified():
-            self.save_command()
-        self.parent.quit()
+            if self.filename == '' or self.filename == ():
+                fname = "Unsaved File"
+            else:
+                fname = self.filename
+            if tkMessageBox.askyesno("Unsaved File",
+                                     "File: " + fname + 
+                                     " hasn't been saved." + 
+                                     " Quit anyway?"):
+                print "Trying to quit"
+                return self.really_quit()
+            else:
+                print "Not trying to quit"
+                return False
+        else:
+            print "Quitting this way"
+            return self.really_quit()
 
     def quit_command(self):
         """
-        Quit the whole application. This is more difficult. Really
-        needs a singleton to keep track of all windows and send close
-        actions to those windows.
+        Quit the whole application. This is more difficult. The
+        singleton global AllWindows contains all the various windows
+        created. This just cycles through them and closes each of
+        them.
         """
-        self.close_command()
+        while len(AllWindows)>0:
+            window = AllWindows[0]
+            print "quit" + str(window)
+            if not window.close_command():
+                print "Window close false"
+                return
+            else:
+                print "Huh?"
 
     def check_syntax(self):
         """
