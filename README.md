@@ -6,6 +6,20 @@ The initial repo for the Robots team.
 The robots team is going to work on a cross-platform IDE/compiler for lego robots. I think what we want to create is something a bit like RobotC (which works well on Windows but not on anything else). However, neither the language nor the environment need be the same, but that is the sort of thing we're chasing. Relatively easy to use and hopefully reliable.
 
 ==========
+
+Current plan (17th July 2013):
+
+Just to get things going a bit, I'm going to specify three high-level tasks for a simple single file IDE. We can expand to multiple files later. We'll need to drill down a bit before getting to actual tasks though.
+
+Task 1: parse the output of the compiler and if errors highlight relevant bits of the program.
+
+Task 2: add a task bar, a basic set of icons, and menu items for: compiling, opening, downloading, running etc the code.
+
+Task 3: create a help system around the NXC API calls.
+
+When drilling down we can either add tasks here, or add them to the issue system in github.
+
+==========
 To do:
 
 Initially there are two related tasks. The first is to investigate what open-source tools are already available and see if they can be co-opted into the project and developed further. For example, we might try and make use of the nxc compiler.
