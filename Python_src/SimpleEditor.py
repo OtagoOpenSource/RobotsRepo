@@ -172,8 +172,11 @@ class SimpleEditor:
             self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, "Hooray, compile successful")
         except subprocess.CalledProcessError as e:
+            lines = e.output.splitlines()
+            lines = [x for x in lines if not x.startswith('# Status')]
+            output = '\n'.join(lines)
             self.compilerWidget.delete("1.0", Tkinter.END)
-            self.compilerWidget.insert(Tkinter.END, e.output)
+            self.compilerWidget.insert(Tkinter.END, output)
 
     def compile_upload(self):
         """
