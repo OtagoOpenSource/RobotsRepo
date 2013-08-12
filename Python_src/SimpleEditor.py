@@ -164,12 +164,14 @@ class SimpleEditor:
         """
         if self.textWidget.edit_modified():
             self.save_command()
-        compile = subprocess.check_output(['../NBC_Mac/nbc', 
-                                           self.filename, 
-                                           '-O={}.rxe'.format(self.filename)],
-                                          stderr=subprocess.STDOUT)
-        self.compilerWidget.delete("1.0", Tkinter.END)
-        self.compilerWidget.insert(Tkinter.END, compile)
+        try:
+            compile = subprocess.check_output(['../NBC_Mac/nbc', 
+                                               self.filename, 
+                                               '-O={}.rxe'.format(self.filename)],
+                                              stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            self.compilerWidget.delete("1.0", Tkinter.END)
+            self.compilerWidget.insert(Tkinter.END, e.output)
 
     def compile_upload(self):
         """
