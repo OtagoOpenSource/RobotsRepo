@@ -26,7 +26,7 @@ class SimpleEditor:
         # todo - add shortcuts and possible shortcut icons
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
         self.fileMenu = Tkinter.Menu(self.menuBar, tearoff=0)
-        self.fileMenu.add_command(label="New", command=self.new_command)
+        self.fileMenu.add_command(label="New", underline=1, command=self.new_command, accelerator="Ctrl+N")
         self.fileMenu.add_command(label="Open", command=self.open_command)
         self.fileMenu.add_command(label="Save", command=self.save_command)
         self.fileMenu.add_command(label="Save As", command=self.saveas_command)
