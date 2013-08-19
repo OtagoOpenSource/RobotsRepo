@@ -44,6 +44,10 @@ class SimpleEditor:
                                      command=self.check_syntax)
         self.commandMenu.add_command(label="Compile and Upload", 
                                      command = self.compile_upload)
+        self.commandMenu.add_command(label="Next Error", 
+                                     command = self.next_error)
+        self.commandMenu.add_command(label="Previous Error", 
+                                     command = self.prev_error)
         self.menuBar.add_cascade(label="Compile", menu=self.commandMenu)
 
         parent.config(menu=self.menuBar)
@@ -176,6 +180,7 @@ class SimpleEditor:
             lines = e.output.splitlines()
             lines = [x for x in lines if not x.startswith('# Status')]
             self.error_lines = []
+            self.error_pos = 0
             for line in lines:
                 m = re.search('(line) ([0-9]+)', line)
                 if m is not None:
@@ -190,6 +195,17 @@ class SimpleEditor:
         Compile and upload the program to an actual lego brick. Again
         using the NBC compiler.
         """
+        pass
+
+    def next_error(self):
+        """
+        Currently breaks if it's called before Check Syntax is
+        """
+        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+        self.error_pos += 1
+        self.error_pos %= len(self.error_lines)
+
+    def prev_error(self):
         pass
 
 
