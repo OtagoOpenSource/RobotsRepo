@@ -20,18 +20,34 @@ class SimpleEditor:
 
     def __init__(self, parent):
         self.parent = parent
+        # this frame contains the in-app clickable buttons
+        self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
+        self.menuFrame.grid(row=0,column=0)
+
         self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50)
-        self.textWidget.grid(row=0,column=0)
+        self.textWidget.grid(row=1,column=0)
+
         # this is for the output from the compiler
-        self.compilerWidget = ScrolledText.ScrolledText(parent, width=80, 
-                                                        height=20)
-        self.compilerWidget.grid(row=1,column=0)
+        self.compilerWidget = ScrolledText.ScrolledText(parent, width=80, height=20)
+        self.compilerWidget.grid(row=2,column=0)
 
         # set up the menus
+        #set up clickable buttons
+        buttonNames = ["New", "Open", "Save", "Check Syntax",
+				"Compile", "Prev", "Next"]
+        buttonCommands = [self.new_command, self.open_command, self.save_command,
+                self.check_syntax, None, self.prev_error, self.next_error]
+        for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
+            self.Button = Tkinter.Button(self.menuFrame, text=buttonName, 
+                command=buttonCommand)
+            if buttonName in ["Check Syntax", "Prev"]: #space the buttons
+                self.Button.pack(side=Tkinter.LEFT, padx=(20, 0))
+            else:
+                self.Button.pack(side=Tkinter.LEFT)
         # todo - add shortcuts and possible shortcut icons
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
         self.fileMenu = Tkinter.Menu(self.menuBar, tearoff=0)
-        self.fileMenu.add_command(label="New", command=self.new_command)
+        self.fileMenu.add_command(label="New", underline=1, command=self.new_command, accelerator="Ctrl+N")
         self.fileMenu.add_command(label="Open", command=self.open_command)
         self.fileMenu.add_command(label="Save", command=self.save_command)
         self.fileMenu.add_command(label="Save As", command=self.saveas_command)
