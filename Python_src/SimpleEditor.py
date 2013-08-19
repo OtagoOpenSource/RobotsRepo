@@ -8,6 +8,7 @@ import ScrolledText
 import tkFileDialog
 import subprocess
 import tkMessageBox
+import re
 
 # a global singleton list of windows
 AllWindows = []
@@ -174,6 +175,12 @@ class SimpleEditor:
         except subprocess.CalledProcessError as e:
             lines = e.output.splitlines()
             lines = [x for x in lines if not x.startswith('# Status')]
+            self.error_lines = []
+            for line in lines:
+                m = re.search('(line) ([0-9]+)', line)
+                if m is not None:
+                    if m.lastindex==2:
+                        self.error_lines += [int(m.group(2))]
             output = '\n'.join(lines)
             self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, output)
