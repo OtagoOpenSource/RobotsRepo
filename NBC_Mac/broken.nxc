@@ -8,7 +8,7 @@ struct person
 
 struct car
 {
-  string car_type;
+  int car_type;
   int manu_year;
 };
 
