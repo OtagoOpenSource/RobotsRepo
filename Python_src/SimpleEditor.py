@@ -36,7 +36,7 @@ class SimpleEditor:
         buttonNames = ["New", "Open", "Save", "Check Syntax",
 				"Compile", "Prev", "Next"]
         buttonCommands = [self.new_command, self.open_command, self.save_command,
-                self.check_syntax, None, None, None]
+                self.check_syntax, None, self.prev_error, self.next_error]
         for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
             self.Button = Tkinter.Button(self.menuFrame, text=buttonName, 
                 command=buttonCommand)
