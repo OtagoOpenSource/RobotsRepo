@@ -66,6 +66,11 @@ class SimpleEditor:
                                      command = self.prev_error)
         self.menuBar.add_cascade(label="Compile", menu=self.commandMenu)
 
+        self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
+        self.commandMenu.add_command(label="NXC Function Catalog", 
+                                     command=self.open_API)
+        self.menuBar.add_cascade(label="help", menu=self.commandMenu);
+
         parent.config(menu=self.menuBar)
 
         # initialise the file associated with this window as ''
@@ -224,6 +229,18 @@ class SimpleEditor:
     def prev_error(self):
         pass
 
+
+    def open_API(self):
+    """
+    Eventually pop up some form of useful information on functions that
+    NXC uses
+    """
+    api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
+                                    self.filename, 
+                                    '-O={}.rxe'.format(self.filename)],
+                                   stderr=subprocess.STDOUT) 
+    print api_test
+    
 
 if __name__ == "__main__":
     root = Tkinter.Tk()
