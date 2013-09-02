@@ -117,7 +117,7 @@ class SimpleEditor:
         if self.filename=='':
             self.filename = tkFileDialog.askopenfilename()
             if self.filename != '':
-                file = open(self.filename, "r")
+                file = open(self.filename, "rU")
                 contents = file.read()
                 self.textWidget.insert(Tkinter.END, contents)
                 file.close()
@@ -132,7 +132,7 @@ class SimpleEditor:
         if self.filename=='' or self.filename==():
             return self.saveas_command()
         else:
-            file = open(self.filename, "w")
+            file = open(self.filename, "wU")
             contents = self.textWidget.get("1.0", Tkinter.END)[:-1]
             file.write(contents)
             file.close()
@@ -146,7 +146,7 @@ class SimpleEditor:
         # sometimes it returns a tuple
         if self.filename != '' and self.filename != ():
             print self.filename
-            file = open(self.filename, "w")
+            file = open(self.filename, "wU")
             contents = self.textWidget.get("1.0", Tkinter.END)[:-1]
             file.write(contents)
             file.close()
