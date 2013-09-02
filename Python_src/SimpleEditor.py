@@ -31,6 +31,10 @@ class SimpleEditor:
         self.compilerWidget = ScrolledText.ScrolledText(parent, width=80, height=20)
         self.compilerWidget.grid(row=2,column=0)
 
+        # used to keep track of the lines where errors are on
+        self.error_lines = []
+        self.error_pos = -1
+
         # set up the menus
         #set up clickable buttons
         buttonNames = ["New", "Open", "Save", "Check Syntax",
@@ -201,7 +205,7 @@ class SimpleEditor:
             lines = e.output.splitlines()
             lines = [x for x in lines if not x.startswith('# Status')]
             self.error_lines = []
-            self.error_pos = 0
+            self.error_pos = -1
             for line in lines:
                 m = re.search('(line) ([0-9]+)', line)
                 if m is not None:
@@ -219,27 +223,26 @@ class SimpleEditor:
         pass
 
     def next_error(self):
-        """
-        Currently breaks if it's called before Check Syntax is
-        """
-        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
         self.error_pos += 1
         self.error_pos %= len(self.error_lines)
+        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
 
     def prev_error(self):
-        pass
+        self.error_pos -= 1
+        if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
+        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
 
 
     def open_API(self):
-    """
-    Eventually pop up some form of useful information on functions that
-    NXC uses
-    """
-    api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
-                                    self.filename, 
-                                    '-O={}.rxe'.format(self.filename)],
-                                   stderr=subprocess.STDOUT) 
-    print api_test
+        """
+        Eventually pop up some form of useful information on functions that
+        NXC uses
+        """
+        api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
+                                        self.filename, 
+                                        '-O={}.rxe'.format(self.filename)],
+                                       stderr=subprocess.STDOUT) 
+        print api_test
     
 
 if __name__ == "__main__":
