@@ -24,7 +24,7 @@ class SimpleEditor:
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
         self.menuFrame.grid(row=0,column=0)
 
-        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50)
+        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50, undo=True)
         self.textWidget.grid(row=1,column=0)
 
         # this is for the output from the compiler
@@ -237,10 +237,16 @@ class SimpleEditor:
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
 
     def undo_command(self):
-        self.textWidget.edit_undo()
+        try:
+            self.textWidget.edit_undo()
+        except:
+            pass
 
     def redo_command(self):
-        self.textWidget.edit_redo()
+        try:
+            self.textWidget.edit_redo()
+        except:
+            pass
 
 
     def open_API(self):
