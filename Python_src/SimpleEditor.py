@@ -256,7 +256,7 @@ class SimpleEditor:
         self.error_pos -= 1
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
-<<<<<<< Updated upstream
+        self.highlight_current_line()
 
     def undo_command(self):
         try:
@@ -269,10 +269,6 @@ class SimpleEditor:
             self.textWidget.edit_redo()
         except:
             pass
-
-=======
-        self.highlight_current_line()
->>>>>>> Stashed changes
 
     def open_API(self):
         """
