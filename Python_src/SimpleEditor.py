@@ -97,6 +97,16 @@ class SimpleEditor:
         root.mainloop()
         return new_editor
 
+    def open_new_command(self):
+        """
+        Open a new file in a new window.
+        """
+        root = Tkinter.Tk()
+        new_editor = SimpleEditor(root)
+        new_editor.open_command()
+        root.mainloop()
+        return new_editor
+
     def open_command(self):
         """
         Open an existing file in the current window
@@ -110,7 +120,7 @@ class SimpleEditor:
                 file.close()
                 self.textWidget.edit_modified(False)
         else:
-            editor = self.new_command()
+            editor = self.open_new_command()
 
     def save_command(self):
         """
