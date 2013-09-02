@@ -24,7 +24,7 @@ class SimpleEditor:
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
         self.menuFrame.grid(row=0,column=0)
 
-        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50)
+        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50, undo=True)
         self.textWidget.grid(row=1,column=0)
 
         # this is for the output from the compiler
@@ -52,15 +52,18 @@ class SimpleEditor:
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
         self.fileMenu = Tkinter.Menu(self.menuBar, tearoff=0)
         self.fileMenu.add_command(label="New", underline=1, command=self.new_command, accelerator="Ctrl+N")
-        self.fileMenu.add_command(label="Open", command=self.open_command)
-        self.fileMenu.add_command(label="Save", command=self.save_command)
-        self.fileMenu.add_command(label="Save As", command=self.saveas_command)
+        self.fileMenu.add_command(label="Open", command=self.open_command, accelerator="Ctrl+O")
+        self.fileMenu.add_command(label="Save", command=self.save_command, accelerator="Ctrl+S")
+        self.fileMenu.add_command(label="Save As", command=self.saveas_command, accelerator="Ctrl+Shift+S")
         self.fileMenu.add_command(label="Close", command=self.close_command)
-        self.fileMenu.add_command(label="Quit", command=self.quit_command)
-        self.fileMenu.add_command(label="Undo", command=self.undo_command)
-        self.fileMenu.add_command(label="Redo", command=self.redo_command)
+        self.fileMenu.add_command(label="Quit", command=self.quit_command, accelerator="Ctrl+Q")
         self.menuBar.add_cascade(label="File", menu=self.fileMenu)
-        
+
+        self.editMenu = Tkinter.Menu(parent, tearoff=0)
+        self.editMenu.add_command(label="Undo", command=self.undo_command, accelerator="Ctrl+Z")
+        self.editMenu.add_command(label="Redo", command=self.redo_command, accelerator="Ctrl+Y")
+        self.menuBar.add_cascade(label="Edit", menu=self.editMenu)
+
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
         self.commandMenu.add_command(label="Check Syntax", 
                                      command=self.check_syntax)
@@ -247,10 +250,16 @@ class SimpleEditor:
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
 
     def undo_command(self):
-        self.textWidget.edit_undo()
+        try:
+            self.textWidget.edit_undo()
+        except:
+            pass
 
     def redo_command(self):
-        self.textWidget.edit_redo()
+        try:
+            self.textWidget.edit_redo()
+        except:
+            pass
 
 
     def open_API(self):
