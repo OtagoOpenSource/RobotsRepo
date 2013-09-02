@@ -57,6 +57,8 @@ class SimpleEditor:
         self.fileMenu.add_command(label="Save As", command=self.saveas_command)
         self.fileMenu.add_command(label="Close", command=self.close_command)
         self.fileMenu.add_command(label="Quit", command=self.quit_command)
+        self.fileMenu.add_command(label="Undo", command=self.undo_command)
+        self.fileMenu.add_command(label="Redo", command=self.redo_command)
         self.menuBar.add_cascade(label="File", menu=self.fileMenu)
         
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
@@ -223,14 +225,22 @@ class SimpleEditor:
         pass
 
     def next_error(self):
+        if len(self.error_lines) == 0: return
         self.error_pos += 1
         self.error_pos %= len(self.error_lines)
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
 
     def prev_error(self):
+        if len(self.error_lines) == 0: return
         self.error_pos -= 1
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+
+    def undo_command(self):
+        self.textWidget.edit_undo()
+
+    def redo_command(self):
+        self.textWidget.edit_redo()
 
 
     def open_API(self):
