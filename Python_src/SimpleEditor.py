@@ -35,10 +35,13 @@ class SimpleEditor:
         self.error_lines = []
         self.error_pos = -1
 
+        #define a tag for highlighting the current line
+        self.textWidget.tag_configure("current_line", background="#e8e800")
+
         # set up the menus
         #set up clickable buttons
         buttonNames = ["New", "Open", "Save", "Check Syntax",
-				"Compile", "Prev", "Next"]
+                "Compile", "Prev", "Next"]
         buttonCommands = [self.new_command, self.open_command, self.save_command,
                 self.check_syntax, None, self.prev_error, self.next_error]
         for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
@@ -237,17 +240,23 @@ class SimpleEditor:
         """
         pass
 
+    def highlight_current_line(self):
+        self.textWidget.tag_remove("current_line", 1.0, "end")
+        self.textWidget.tag_add("current_line", "insert linestart", "insert lineend")
+
     def next_error(self):
         if len(self.error_lines) == 0: return
         self.error_pos += 1
         self.error_pos %= len(self.error_lines)
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+        self.highlight_current_line()
 
     def prev_error(self):
         if len(self.error_lines) == 0: return
         self.error_pos -= 1
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+<<<<<<< Updated upstream
 
     def undo_command(self):
         try:
@@ -261,6 +270,9 @@ class SimpleEditor:
         except:
             pass
 
+=======
+        self.highlight_current_line()
+>>>>>>> Stashed changes
 
     def open_API(self):
         """
