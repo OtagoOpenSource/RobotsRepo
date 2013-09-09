@@ -9,6 +9,7 @@ import tkFileDialog
 import subprocess
 import tkMessageBox
 import re
+import webbrowser
 
 # a global singleton list of windows
 AllWindows = []
@@ -24,7 +25,7 @@ class SimpleEditor:
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
         self.menuFrame.grid(row=0,column=0)
 
-        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=50, undo=True)
+        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=30, undo=True)
         self.textWidget.grid(row=1,column=0)
 
         # this is for the output from the compiler
@@ -79,9 +80,9 @@ class SimpleEditor:
         self.menuBar.add_cascade(label="Compile", menu=self.commandMenu)
 
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
-        self.commandMenu.add_command(label="NXC Function Catalog", 
+        self.commandMenu.add_command(label="NXC Help (opens webpage)", 
                                      command=self.open_API)
-        self.menuBar.add_cascade(label="help", menu=self.commandMenu);
+        self.menuBar.add_cascade(label="Help", menu=self.commandMenu);
 
         parent.config(menu=self.menuBar)
 
@@ -275,12 +276,7 @@ class SimpleEditor:
         Eventually pop up some form of useful information on functions that
         NXC uses
         """
-        api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
-                                        self.filename, 
-                                        '-O={}.rxe'.format(self.filename)],
-                                       stderr=subprocess.STDOUT) 
-        print api_test
-    
+        webbrowser.open("http://bricxcc.sourceforge.net/nbc/nxcdoc/nxcapi/index.html")
 
 if __name__ == "__main__":
     root = Tkinter.Tk()
