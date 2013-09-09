@@ -10,6 +10,8 @@ import subprocess
 import tkMessageBox
 import re
 import webbrowser
+import keyword #SH
+from string import ascii_letters, digits, punctuation, join #SH
 
 # a global singleton list of windows
 AllWindows = []
@@ -18,6 +20,9 @@ class SimpleEditor:
     """
     A simple editor for NQC code.
     """
+
+    # define tags for keywords, identifiers, numbers
+    tags = {'kw': '#090', 'int': 'red', 'id': 'purple'}
 
     def __init__(self, parent):
         self.parent = parent
@@ -36,18 +41,21 @@ class SimpleEditor:
         self.error_lines = []
         self.error_pos = -1
 
+        #Syntax Highlighting: Should be put into a separate module
         #define a tag for highlighting the current line
         self.textWidget.tag_configure("current_line", background="#e8e800")
+        self.config_tags()
+        self.characters = ascii_letters + digits + punctuation
+        self.textWidget.bind('<Key>', self.key_press)
 
         # set up the menus
         #set up clickable buttons
         buttonNames = ["New", "Open", "Save", "Check Syntax",
                 "Compile", "Prev", "Next"]
-        buttonCommands = [self.new_command, self.open_command, self.save_command,
-                self.check_syntax, None, self.prev_error, self.next_error]
+        buttonCommands = [self.new_command, self.open_command, self.save_command, self.check_syntax, None, self.prev_error, self.next_error]
         for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
             self.Button = Tkinter.Button(self.menuFrame, text=buttonName, 
-                command=buttonCommand)
+                    command=buttonCommand)
             if buttonName in ["Check Syntax", "Prev"]: #space the buttons
                 self.Button.pack(side=Tkinter.LEFT, padx=(20, 0))
             else:
@@ -70,13 +78,13 @@ class SimpleEditor:
 
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
         self.commandMenu.add_command(label="Check Syntax", 
-                                     command=self.check_syntax)
+                command=self.check_syntax)
         self.commandMenu.add_command(label="Compile and Upload", 
-                                     command = self.compile_upload)
+                command = self.compile_upload)
         self.commandMenu.add_command(label="Next Error", 
-                                     command = self.next_error)
+                command = self.next_error)
         self.commandMenu.add_command(label="Previous Error", 
-                                     command = self.prev_error)
+                command = self.prev_error)
         self.menuBar.add_cascade(label="Compile", menu=self.commandMenu)
 
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
@@ -92,9 +100,7 @@ class SimpleEditor:
 
         # add the new object to the list of all windows.
         AllWindows.append(self)
-        
 
-    
     def new_command(self):
         """
         Create a blank new text window
@@ -126,6 +132,7 @@ class SimpleEditor:
                 self.textWidget.insert(Tkinter.END, contents)
                 file.close()
                 self.textWidget.edit_modified(False)
+                self.rehighlight()
         else:
             editor = self.open_new_command()
 
@@ -140,6 +147,7 @@ class SimpleEditor:
             contents = self.textWidget.get("1.0", Tkinter.END)[:-1]
             file.write(contents)
             file.close()
+            self.rehighlight()
             return True
 
     def saveas_command(self):
@@ -155,6 +163,7 @@ class SimpleEditor:
             file.write(contents)
             file.close()
             self.textWidget.edit_modified(False)
+            self.rehighlight()
             return True
         else:
             return False
@@ -251,6 +260,7 @@ class SimpleEditor:
         self.error_pos %= len(self.error_lines)
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
+        self.rehighlight()
 
     def prev_error(self):
         if len(self.error_lines) == 0: return
@@ -258,16 +268,19 @@ class SimpleEditor:
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
+        self.rehighlight()
 
     def undo_command(self):
         try:
             self.textWidget.edit_undo()
+            self.rehighlight()
         except:
             pass
 
     def redo_command(self):
         try:
             self.textWidget.edit_redo()
+            self.rehighlight()
         except:
             pass
 
@@ -277,6 +290,69 @@ class SimpleEditor:
         NXC uses
         """
         webbrowser.open("http://bricxcc.sourceforge.net/nbc/nxcdoc/nxcapi/index.html")
+        api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
+                                        self.filename, 
+                                        '-O={}.rxe'.format(self.filename)],
+                                       stderr=subprocess.STDOUT) 
+        print api_test
+
+### Begin Syntax Highlighting
+    def config_tags(self):
+        for tag, val in self.tags.items():
+            self.textWidget.tag_config(tag, foreground=val)
+
+    def remove_tags(self, start, end):
+        for tag in self.tags.keys():
+            self.textWidget.tag_remove(tag, start, end)
+
+    def key_press(self, key):
+        self.rehighlight()
+
+    def rehighlight(self):
+        # loop through every line... VERY INEFFICIENT
+        lastline = int(self.textWidget.index(Tkinter.END).split('.')[0])
+        #cline = self.textWidget.index(Tkinter.INSERT).split('.')[0]
+        #now loop from line = 0 to line = lastline
+        for cline in range(0, lastline - 1):
+            lastcol = 0
+            char = self.textWidget.get('%d.%d'%(cline, lastcol))
+            # Stuck in infinite loop here :(
+            while char != '\n':
+                lastcol += 1
+                char = self.textWidget.get('%d.%d'%(cline, lastcol))
+                if lastcol > 80: # temp hack to break infinite loop
+                    break
+
+            buffer = self.textWidget.get('%d.%d'%(cline,0),'%d.%d'%(cline,lastcol))
+            tokenized = buffer.split(' ')
+
+            self.remove_tags('%d.%d'%(cline, 0), '%d.%d'%(cline, lastcol))
+
+            start, end = 0, 0
+            for token in tokenized:
+                end = start + len(token)
+                identifiers = ["bool", "byte", "char", "const", "enum", "float", "int", "long",
+                           "mutex", "short", "static", "string", "typedef", "unsigned",
+                           "struct"]
+                keywords = ["asm", "break", "case", "continue", "do", "if", "else",
+                "for", "goto", "priority", "repeat", "return", "start", "stop",
+                "switch", "until", "while", "default", "inline", "safecall",
+                "sub", "void", "true", "false"]
+                if token in keywords:
+                    self.textWidget.tag_add('kw', '%d.%d'%(cline, start), '%d.%d'%(cline, end))
+                elif token in identifiers:
+                    self.textWidget.tag_add('id', '%d.%d'%(cline, start), '%d.%d'%(cline, end))
+                else:
+                    for index in range(len(token)):
+                        try:
+                            int(token[index])
+                        except ValueError:
+                            pass
+                        else:
+                            self.textWidget.tag_add('int', '%d.%d'%(cline, start+index))
+                start += len(token)+1
+### End Syntax Highlighting
+
 
 if __name__ == "__main__":
     root = Tkinter.Tk()
