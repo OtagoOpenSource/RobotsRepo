@@ -30,12 +30,16 @@ class SimpleEditor:
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
         self.menuFrame.grid(row=0,column=0)
 
-        self.textWidget = ScrolledText.ScrolledText(parent, width=80, height=30, undo=True)
-        self.textWidget.grid(row=1,column=0)
+        self.textFrame = Tkinter.Frame(parent, bg="#000000")
+        self.textWidget = ScrolledText.ScrolledText(self.textFrame, width=80, height=30, undo=True)
+        self.textWidget.grid(row=0,column=0,padx=2,pady=2)
+        self.textFrame.grid(row=2,column=0)
 
         # this is for the output from the compiler
-        self.compilerWidget = ScrolledText.ScrolledText(parent, width=80, height=20)
-        self.compilerWidget.grid(row=2,column=0)
+        self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
+        self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
+        self.compilerWidget.grid(row=0,column=0, padx=2,pady=2)
+        self.compilerFrame.grid(row=3,column=0)
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
@@ -60,6 +64,9 @@ class SimpleEditor:
                 self.Button.pack(side=Tkinter.LEFT, padx=(20, 0))
             else:
                 self.Button.pack(side=Tkinter.LEFT)
+        self.lineLabel = Tkinter.Label(self.menuFrame, text="Line num", highlightthickness=1, highlightbackground="#000000")
+        self.lineLabel.pack(side=Tkinter.LEFT)
+        
         # todo - add shortcuts and possible shortcut icons
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
         self.fileMenu = Tkinter.Menu(self.menuBar, tearoff=0)
@@ -259,6 +266,7 @@ class SimpleEditor:
         self.error_pos += 1
         self.error_pos %= len(self.error_lines)
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+        self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
         self.rehighlight()
 
@@ -267,6 +275,7 @@ class SimpleEditor:
         self.error_pos -= 1
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
         self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
+        self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
         self.rehighlight()
 
