@@ -66,6 +66,7 @@ class SimpleEditor:
                 self.Button.pack(side=Tkinter.LEFT)
         self.lineLabel = Tkinter.Label(self.menuFrame, text="Line num", highlightthickness=1, highlightbackground="#000000")
         self.lineLabel.pack(side=Tkinter.LEFT)
+        self.textWidget.bind('<KeyRelease>', self.update_linenum_label)
         
         # todo - add shortcuts and possible shortcut icons
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
@@ -304,6 +305,9 @@ class SimpleEditor:
                                         '-O={}.rxe'.format(self.filename)],
                                        stderr=subprocess.STDOUT) 
         print api_test
+
+    def update_linenum_label(self, event):
+      self.lineLabel.config(text=self.textWidget.index('insert'))
 
 ### Begin Syntax Highlighting
     def config_tags(self):
