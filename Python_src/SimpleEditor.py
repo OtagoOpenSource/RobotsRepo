@@ -28,19 +28,21 @@ class SimpleEditor:
     def __init__(self, parent):
         self.parent = parent
         # this frame contains the in-app clickable buttons
-        self.menuFrame = Tkinter.Frame(parent, height=24, width=80);
-        self.menuFrame.grid(row=0,column=0)
+        self.menuFrame = Tkinter.Frame(parent, height=24, width=80)
+        self.menuFrame.pack(side=Tkinter.TOP)
+        #self.menuFrame.grid(row=0,column=0)
 
         self.textFrame = Tkinter.Frame(parent, bg="#000000")
-        self.textWidget = ScrolledText.ScrolledText(self.textFrame, width=80, height=30, undo=True)
-        self.textWidget.grid(row=0,column=0,padx=2,pady=2)
-        self.textFrame.grid(row=2,column=0)
+        self.textWidget = ScrolledText.ScrolledText(self.textFrame, width=80, height=40, undo=True)
+        self.textWidget.pack(fill=Tkinter.X, padx=2, pady=2)
+        self.textFrame.pack(side=Tkinter.TOP, fill=Tkinter.X)
 
         # this is for the output from the compiler
         self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
         self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
-        self.compilerWidget.grid(row=0,column=0, padx=2,pady=2)
-        self.compilerFrame.grid(row=3,column=0)
+        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.X, padx=2, pady=2)
+        self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
+        #self.compilerFrame.grid(row=3,column=0)
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
