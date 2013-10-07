@@ -29,19 +29,28 @@ class SimpleEditor:
         # this frame contains the in-app clickable buttons
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80)
         self.menuFrame.pack(side=Tkinter.TOP)
-        #self.menuFrame.grid(row=0,column=0)
+
+        #the window which holds the text and the compiler
+        self.pWindow = Tkinter.PanedWindow(orient=Tkinter.VERTICAL, handlesize=5, borderwidth=0, bg="#000", showhandle=True)
+        self.pWindow.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=1)
+
 
         self.textFrame = Tkinter.Frame(parent, bg="#000000")
-        self.textWidget = ScrolledText.ScrolledText(self.textFrame, width=80, height=40, undo=True)
-        self.textWidget.pack(fill=Tkinter.X, padx=2, pady=2)
-        self.textFrame.pack(side=Tkinter.TOP, fill=Tkinter.X)
+        self.textWidget = ScrolledText.ScrolledText(width=80, height=40, undo=True)
+        self.textWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
+        #self.textFrame.pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+
+        #adds textWidget to the top of the pane
+        self.pWindow.add(self.textWidget)
 
         # this is for the output from the compiler
         self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
-        self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
-        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.X, padx=2, pady=2)
-        self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
-        #self.compilerFrame.grid(row=3,column=0)
+        self.compilerWidget = ScrolledText.ScrolledText(width=80, height=20)
+        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, padx=2, pady=2)
+        #self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH)
+
+        #adds compilerWidget to the bottom of the pane
+        self.pWindow.add(self.compilerWidget)
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
