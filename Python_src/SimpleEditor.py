@@ -5,6 +5,7 @@
 
 import Tkinter
 import ScrolledText
+import update_mark
 import tkFileDialog
 import subprocess
 import tkMessageBox
@@ -75,9 +76,10 @@ class SimpleEditor:
                 self.Button.pack(side=Tkinter.LEFT, padx=(20, 0))
             else:
                 self.Button.pack(side=Tkinter.LEFT)
-        self.lineLabel = Tkinter.Label(self.menuFrame, text="Line num", highlightthickness=1, highlightbackground="#000000")
+        self.lineLabel = Tkinter.Label(self.menuFrame, text="1.0", highlightthickness=1, highlightbackground="#000000")
         self.lineLabel.pack(side=Tkinter.LEFT)
         self.textWidget.bind('<KeyRelease>', self.update_linenum_label)
+        self.textWidget.bind('<ButtonRelease>', self.update_linenum_label)
         
         # todo - add shortcuts and possible shortcut icons
         self.menuBar = Tkinter.Menu(parent, tearoff=0)
@@ -281,6 +283,7 @@ class SimpleEditor:
         self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
         self.rehighlight()
+        self.update_linenum_label(None)
 
     def prev_error(self):
         if len(self.error_lines) == 0: return
@@ -290,6 +293,7 @@ class SimpleEditor:
         self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
         self.highlight_current_line()
         self.rehighlight()
+        self.update_linenum_label(None)
 
     def undo_command(self):
         try:
