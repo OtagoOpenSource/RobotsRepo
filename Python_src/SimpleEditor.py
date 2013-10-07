@@ -36,19 +36,15 @@ class SimpleEditor:
         self.pWindow.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=1)
 
 
-        self.textFrame = Tkinter.Frame(parent, bg="#000000")
         self.textWidget = ScrolledText.ScrolledText(width=80, height=40, undo=True)
         self.textWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
-        #self.textFrame.pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
 
         #adds textWidget to the top of the pane
         self.pWindow.add(self.textWidget)
 
         # this is for the output from the compiler
-        self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
         self.compilerWidget = ScrolledText.ScrolledText(width=80, height=20)
         self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, padx=2, pady=2)
-        #self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH)
 
         #adds compilerWidget to the bottom of the pane
         self.pWindow.add(self.compilerWidget)
