@@ -13,6 +13,7 @@ import re
 import webbrowser
 import keyword #SH
 from string import ascii_letters, digits, punctuation, join #SH
+import os
 
 # a global singleton list of windows
 AllWindows = []
@@ -43,11 +44,20 @@ class SimpleEditor:
         self.pWindow.add(self.textWidget)
 
         # this is for the output from the compiler
+<<<<<<< HEAD
         self.compilerWidget = ScrolledText.ScrolledText(width=80, height=20)
         self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, padx=2, pady=2)
 
         #adds compilerWidget to the bottom of the pane
         self.pWindow.add(self.compilerWidget)
+=======
+        self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
+        self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
+        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.X, padx=2, pady=2)
+        self.compilerWidget.bind('<ButtonRelease>', self.find_line_num)
+        self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
+        #self.compilerFrame.grid(row=3,column=0)
+>>>>>>> 9959d3ffc75ea6507b86e7d7e0d2cf9d4ddc4273
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
@@ -240,14 +250,22 @@ class SimpleEditor:
         if self.textWidget.edit_modified():
             self.save_command()
         try:
-            compile = subprocess.check_output(['../NBC_Mac/nbc', 
-                                               self.filename, 
-                                               '-O={}.rxe'.format(self.filename)],
-                                              stderr=subprocess.STDOUT) 
+            cfile = open('.fhtyzbg.out', 'w')
+            nfile = open('.flondgy.out', 'w')
+            compile = subprocess.check_call(['../NBC_Mac/nbc', 
+                                             self.filename, 
+                                             '-O={}.rxe'.format(self.filename)],
+                                            stderr=cfile, stdout=nfile) 
+            cfile.close()
+            nfile.close()
             self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, "Hooray, compile successful")
         except subprocess.CalledProcessError as e:
-            lines = e.output.splitlines()
+            cfile.close()
+            nfile.close()
+            cfile = open('.fhtyzbg.out', 'rU')
+            lines = cfile.readlines()
+            cfile.close()
             lines = [x for x in lines if not x.startswith('# Status')]
             self.error_lines = []
             self.error_pos = -1
@@ -256,9 +274,12 @@ class SimpleEditor:
                 if m is not None:
                     if m.lastindex==2:
                         self.error_lines += [int(m.group(2))]
-            output = '\n'.join(lines)
+            output = ''.join(lines)
             self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, output)
+
+        os.remove('.fhtyzbg.out')
+        os.remove('.flondgy.out')
 
     def compile_upload(self):
         """
@@ -271,25 +292,25 @@ class SimpleEditor:
         self.textWidget.tag_remove("current_line", 1.0, "end")
         self.textWidget.tag_add("current_line", "insert linestart", "insert lineend")
 
+    def goto_line(self, linenum):
+        index = "%d.%d" % (linenum, 0)
+        self.textWidget.mark_set("insert", index)
+        self.textWidget.see(index)
+        self.highlight_current_line()
+        self.rehighlight()
+        self.update_linenum_label(None)
+        
     def next_error(self):
         if len(self.error_lines) == 0: return
         self.error_pos += 1
         self.error_pos %= len(self.error_lines)
-        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
-        self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
-        self.highlight_current_line()
-        self.rehighlight()
-        self.update_linenum_label(None)
+        self.goto_line(self.error_lines[self.error_pos])
 
     def prev_error(self):
         if len(self.error_lines) == 0: return
         self.error_pos -= 1
         if self.error_pos < 0: self.error_pos = len(self.error_lines)-1
-        self.textWidget.mark_set("insert", "%d.%d" % (self.error_lines[self.error_pos], 0))
-        self.textWidget.see("%d.%d" % (self.error_lines[self.error_pos], 0))
-        self.highlight_current_line()
-        self.rehighlight()
-        self.update_linenum_label(None)
+        self.goto_line(self.error_lines[self.error_pos])
 
     def undo_command(self):
         try:
@@ -319,6 +340,13 @@ class SimpleEditor:
 
     def update_linenum_label(self, event):
       self.lineLabel.config(text=self.textWidget.index('insert'))
+
+    def find_line_num(self, event):
+        mouseIndex = "@%d,%d" % (event.x, event.y)
+        index = self.compilerWidget.index(mouseIndex)
+        linenum = int((int(float(index))-1)/4)
+        if linenum<len(self.error_lines):
+            self.goto_line(self.error_lines[linenum])
 
 ### Begin Syntax Highlighting
     def config_tags(self):
