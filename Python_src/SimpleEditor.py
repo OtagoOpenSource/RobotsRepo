@@ -5,7 +5,7 @@
 
 import Tkinter
 import ScrolledText
-import update_mark
+#import update_mark
 import tkFileDialog
 import subprocess
 import tkMessageBox
@@ -32,10 +32,9 @@ class SimpleEditor:
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80)
         self.menuFrame.pack(side=Tkinter.TOP)
 
-        #the window which holds the text and the compiler
+        #the pane which holds the text and the compiler
         self.pWindow = Tkinter.PanedWindow(orient=Tkinter.VERTICAL, handlesize=5, borderwidth=0, bg="#000", showhandle=True)
         self.pWindow.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=1)
-
 
         self.textWidget = ScrolledText.ScrolledText(width=80, height=40, undo=True)
         self.textWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
@@ -44,20 +43,10 @@ class SimpleEditor:
         self.pWindow.add(self.textWidget)
 
         # this is for the output from the compiler
-<<<<<<< HEAD
         self.compilerWidget = ScrolledText.ScrolledText(width=80, height=20)
-        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, padx=2, pady=2)
-
-        #adds compilerWidget to the bottom of the pane
-        self.pWindow.add(self.compilerWidget)
-=======
-        self.compilerFrame = Tkinter.Frame(parent, bg="#000000")
-        self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
-        self.compilerWidget.pack(side=Tkinter.BOTTOM, fill=Tkinter.X, padx=2, pady=2)
+        self.compilerWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
         self.compilerWidget.bind('<ButtonRelease>', self.find_line_num)
-        self.compilerFrame.pack(side=Tkinter.BOTTOM, fill=Tkinter.X)
-        #self.compilerFrame.grid(row=3,column=0)
->>>>>>> 9959d3ffc75ea6507b86e7d7e0d2cf9d4ddc4273
+        self.pWindow.add(self.compilerWidget)
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
