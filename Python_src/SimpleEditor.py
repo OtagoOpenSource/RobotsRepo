@@ -33,20 +33,22 @@ class SimpleEditor:
         self.menuFrame.pack(side=Tkinter.TOP)
 
         #the pane which holds the text and the compiler
-        self.pWindow = Tkinter.PanedWindow(orient=Tkinter.VERTICAL, handlesize=5, borderwidth=0, bg="#000", showhandle=True)
+        self.pWindow = Tkinter.PanedWindow(parent, orient=Tkinter.VERTICAL, handlesize=5, borderwidth=0, bg="#000", showhandle=True)
         self.pWindow.pack(side=Tkinter.BOTTOM, fill=Tkinter.BOTH, expand=1)
 
-        self.textWidget = ScrolledText.ScrolledText(width=80, height=40, undo=True)
+        self.textFrame = Tkinter.Frame(parent)
+        self.textWidget = ScrolledText.ScrolledText(self.textFrame, width=80, height=40, undo=True)
         self.textWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
 
         #adds textWidget to the top of the pane
-        self.pWindow.add(self.textWidget)
+        self.pWindow.add(self.textFrame)
 
         # this is for the output from the compiler
-        self.compilerWidget = ScrolledText.ScrolledText(width=80, height=20)
+        self.compilerFrame = Tkinter.Frame(parent)
+        self.compilerWidget = ScrolledText.ScrolledText(self.compilerFrame, width=80, height=20)
         self.compilerWidget.pack(fill=Tkinter.BOTH, padx=2, pady=2)
         self.compilerWidget.bind('<ButtonRelease>', self.find_line_num)
-        self.pWindow.add(self.compilerWidget)
+        self.pWindow.add(self.compilerFrame)
 
         # used to keep track of the lines where errors are on
         self.error_lines = []
