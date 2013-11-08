@@ -142,7 +142,7 @@ class SimpleEditor:
         """
         Open an existing file in the current window
         """
-        if self.filename=='':
+        if self.filename == '' and not self.textWidget.edit_modified():
             self.filename = tkFileDialog.askopenfilename()
             if self.filename != '':
                 file = open(self.filename, "rU")
