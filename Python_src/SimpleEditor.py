@@ -65,7 +65,7 @@ class SimpleEditor:
         #set up clickable buttons
         buttonNames = ["New", "Open", "Save", "Check Syntax",
                 "Compile", "Prev", "Next"]
-        buttonCommands = [self.new_command, self.open_command, self.save_command, self.check_syntax, None, self.prev_error, self.next_error]
+        buttonCommands = [self.new_command, self.open_command, self.save_command, self.check_syntax, self.compile_upload, self.prev_error, self.next_error]
         for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
             self.Button = Tkinter.Button(self.menuFrame, text=buttonName, 
                     command=buttonCommand)
@@ -190,7 +190,6 @@ class SimpleEditor:
         del AllWindows[AllWindows.index(self)]
         print AllWindows
         self.parent.destroy()
-        print "Made it here"
         return True
 
     def close_command(self):
@@ -277,7 +276,41 @@ class SimpleEditor:
         Compile and upload the program to an actual lego brick. Again
         using the NBC compiler.
         """
-        pass
+        if self.textWidget.edit_modified():
+            self.save_command()
+        try:
+            cfile = open('.fhtyzbg.out', 'w')
+            nfile = open('.flondgy.out', 'w')
+            self.compilerWidget.delete("1.0", Tkinter.END)
+            self.compilerWidget.insert(Tkinter.END, "Compiling and uploading ...")
+            compile = subprocess.check_call(['../NBC_Mac/nbc', '-d', 
+                                             self.filename],
+                                            stderr=cfile, stdout=nfile) 
+            cfile.close()
+            nfile.close()
+            self.compilerWidget.delete("1.0", Tkinter.END)
+            self.compilerWidget.insert(Tkinter.END, "Hooray, compile successful")
+        except subprocess.CalledProcessError as e:
+            cfile.close()
+            nfile.close()
+            cfile = open('.fhtyzbg.out', 'rU')
+            lines = cfile.readlines()
+            cfile.close()
+            lines = [x for x in lines if not x.startswith('# Status')]
+            self.error_lines = []
+            self.error_pos = -1
+            for line in lines:
+                m = re.search('(line) ([0-9]+)', line)
+                if m is not None:
+                    if m.lastindex==2:
+                        self.error_lines += [int(m.group(2))]
+            output = ''.join(lines)
+            self.compilerWidget.delete("1.0", Tkinter.END)
+            self.compilerWidget.insert(Tkinter.END, output)
+
+        os.remove('.fhtyzbg.out')
+        os.remove('.flondgy.out')
+
 
     def highlight_current_line(self):
         self.textWidget.tag_remove("current_line", 1.0, "end")
