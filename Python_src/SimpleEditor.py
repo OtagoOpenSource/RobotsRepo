@@ -242,7 +242,7 @@ class SimpleEditor:
         try:
             cfile = open('.fhtyzbg.out', 'w')
             nfile = open('.flondgy.out', 'w')
-            compile = subprocess.check_call(['../NBC_Mac/nbc', 
+            compile = subprocess.check_call(['./nbc', 
                                              self.filename, 
                                              '-O={}.rxe'.format(self.filename)],
                                             stderr=cfile, stdout=nfile) 
@@ -283,7 +283,7 @@ class SimpleEditor:
             nfile = open('.flondgy.out', 'w')
             self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, "Compiling and uploading ...")
-            compile = subprocess.check_call(['../NBC_Mac/nbc', '-d', 
+            compile = subprocess.check_call(['./nbc', '-d', 
                                              self.filename],
                                             stderr=cfile, stdout=nfile) 
             cfile.close()
@@ -356,7 +356,7 @@ class SimpleEditor:
         NXC uses
         """
         webbrowser.open("http://bricxcc.sourceforge.net/nbc/nxcdoc/nxcapi/index.html")
-        api_test = subprocess.check_output(['../NBC_Mac/nbc -api', 
+        api_test = subprocess.check_output(['./nbc -api', 
                                         self.filename, 
                                         '-O={}.rxe'.format(self.filename)],
                                        stderr=subprocess.STDOUT) 
