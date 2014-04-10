@@ -14,6 +14,7 @@ import webbrowser
 import keyword #SH
 from string import ascii_letters, digits, punctuation, join #SH
 import os
+import sys
 
 # a global singleton list of windows
 AllWindows = []
@@ -87,6 +88,7 @@ class SimpleEditor:
         self.fileMenu.add_command(label="Save As", command=self.saveas_command, accelerator="Ctrl+Shift+S")
         self.fileMenu.add_command(label="Close", command=self.close_command)
         self.fileMenu.add_command(label="Quit", command=self.quit_command, accelerator="Ctrl+Q")
+        self.parent.createcommand('exit', self.quit_command)
         self.menuBar.add_cascade(label="File", menu=self.fileMenu)
 
         self.editMenu = Tkinter.Menu(parent, tearoff=0)
