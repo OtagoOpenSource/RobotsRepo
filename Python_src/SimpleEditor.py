@@ -15,6 +15,7 @@ import keyword #SH
 from string import ascii_letters, digits, punctuation, join #SH
 import os
 import sys
+import tempfile
 
 # a global singleton list of windows
 AllWindows = []
@@ -27,8 +28,10 @@ class SimpleEditor:
     # define tags for keywords, identifiers, numbers
     tags = {'kw': '#090', 'int': 'red', 'id': 'purple'}
 
-    def __init__(self, parent):
+    def __init__(self, parent, compiler='./nbc'):
         self.parent = parent
+        parent.title("Lego Editor")
+        self.compiler = compiler
         # this frame contains the in-app clickable buttons
         self.menuFrame = Tkinter.Frame(parent, height=24, width=80)
         self.menuFrame.pack(side=Tkinter.TOP)
@@ -65,7 +68,7 @@ class SimpleEditor:
         # set up the menus
         #set up clickable buttons
         buttonNames = ["New", "Open", "Save", "Check Syntax",
-                "Compile", "Prev", "Next"]
+                "Compile", "Prev Err", "Next Err"]
         buttonCommands = [self.new_command, self.open_command, self.save_command, self.check_syntax, self.compile_upload, self.prev_error, self.next_error]
         for buttonName, buttonCommand in zip(buttonNames, buttonCommands):
             self.Button = Tkinter.Button(self.menuFrame, text=buttonName, 
@@ -74,7 +77,7 @@ class SimpleEditor:
                 self.Button.pack(side=Tkinter.LEFT, padx=(20, 0))
             else:
                 self.Button.pack(side=Tkinter.LEFT)
-        self.lineLabel = Tkinter.Label(self.menuFrame, text="1.0", highlightthickness=1, highlightbackground="#000000")
+        self.lineLabel = Tkinter.Label(self.menuFrame, text="Line: 1.0", highlightthickness=1, highlightbackground="#000000")
         self.lineLabel.pack(side=Tkinter.LEFT)
         self.textWidget.bind('<KeyRelease>', self.update_linenum_label)
         self.textWidget.bind('<ButtonRelease>', self.update_linenum_label)
@@ -126,7 +129,7 @@ class SimpleEditor:
         Create a blank new text window
         """
         root = Tkinter.Tk()
-        new_editor = SimpleEditor(root)
+        new_editor = SimpleEditor(root, self.compiler)
         root.mainloop()
         return new_editor
 
@@ -135,7 +138,7 @@ class SimpleEditor:
         Open a new file in a new window.
         """
         root = Tkinter.Tk()
-        new_editor = SimpleEditor(root)
+        new_editor = SimpleEditor(root, self.compiler)
         new_editor.open_command()
         root.mainloop()
         return new_editor
@@ -153,6 +156,7 @@ class SimpleEditor:
                 file.close()
                 self.textWidget.edit_modified(False)
                 self.rehighlight()
+                self.parent.title(self.filename)
         else:
             editor = self.open_new_command()
 
@@ -232,32 +236,40 @@ class SimpleEditor:
             else:
                 print "Huh?"
 
-    def check_syntax(self):
+    def check_or_compile(self, upload):
         """
         Check the syntax of current contents by calling the NBC
         compiler. Needs to create a sub window for the output of the
         compiler and in the case of errors parse the output and move
         the cursor to the appropriate line.
         """
+        self.compilerWidget.delete("1.0", Tkinter.END)
+        if not upload:
+            self.compilerWidget.insert(Tkinter.END, 'Checking syntax\n')
+        else:
+            self.compilerWidget.insert(Tkinter.END, 'Compiling and uploading\n')
+
         if self.textWidget.edit_modified():
             self.save_command()
         try:
-            cfile = open('.fhtyzbg.out', 'w')
-            nfile = open('.flondgy.out', 'w')
-            compile = subprocess.check_call(['./nbc', 
-                                             self.filename, 
-                                             '-O={}.rxe'.format(self.filename)],
-                                            stderr=cfile, stdout=nfile) 
-            cfile.close()
-            nfile.close()
-            self.compilerWidget.delete("1.0", Tkinter.END)
+            cfile = tempfile.NamedTemporaryFile()
+            nfile = tempfile.NamedTemporaryFile()
+            if not upload:
+                compile = subprocess.check_call([self.compiler, 
+                                                 self.filename, 
+                                                 '-O={}.rxe'.format(self.filename)],
+                                                stderr=cfile, stdout=nfile) 
+            else:
+                compile = subprocess.check_call([self.compiler, '-d', 
+                                                 self.filename],
+                                                stderr=cfile, stdout=nfile) 
+
             self.compilerWidget.insert(Tkinter.END, "Hooray, compile successful")
         except subprocess.CalledProcessError as e:
-            cfile.close()
-            nfile.close()
-            cfile = open('.fhtyzbg.out', 'rU')
+            self.compilerWidget.insert(Tkinter.END, str(e))
+            cfile.seek(0)
+            nfile.seek(0)
             lines = cfile.readlines()
-            cfile.close()
             lines = [x for x in lines if not x.startswith('# Status')]
             self.error_lines = []
             self.error_pos = -1
@@ -267,52 +279,25 @@ class SimpleEditor:
                     if m.lastindex==2:
                         self.error_lines += [int(m.group(2))]
             output = ''.join(lines)
-            self.compilerWidget.delete("1.0", Tkinter.END)
+            # self.compilerWidget.delete("1.0", Tkinter.END)
             self.compilerWidget.insert(Tkinter.END, output)
+        except Exception as e:
+            self.compilerWidget.insert(Tkinter.END, str(e))
+        finally:
+            cfile.close()
+            nfile.close()
+        #os.remove('.fhtyzbg.out')
+        #os.remove('.flondgy.out')
 
-        os.remove('.fhtyzbg.out')
-        os.remove('.flondgy.out')
+    def check_syntax(self):
+        self.check_or_compile(False)
 
     def compile_upload(self):
         """
         Compile and upload the program to an actual lego brick. Again
         using the NBC compiler.
         """
-        if self.textWidget.edit_modified():
-            self.save_command()
-        try:
-            cfile = open('.fhtyzbg.out', 'w')
-            nfile = open('.flondgy.out', 'w')
-            self.compilerWidget.delete("1.0", Tkinter.END)
-            self.compilerWidget.insert(Tkinter.END, "Compiling and uploading ...")
-            compile = subprocess.check_call(['./nbc', '-d', 
-                                             self.filename],
-                                            stderr=cfile, stdout=nfile) 
-            cfile.close()
-            nfile.close()
-            self.compilerWidget.delete("1.0", Tkinter.END)
-            self.compilerWidget.insert(Tkinter.END, "Hooray, compile successful")
-        except subprocess.CalledProcessError as e:
-            cfile.close()
-            nfile.close()
-            cfile = open('.fhtyzbg.out', 'rU')
-            lines = cfile.readlines()
-            cfile.close()
-            lines = [x for x in lines if not x.startswith('# Status')]
-            self.error_lines = []
-            self.error_pos = -1
-            for line in lines:
-                m = re.search('(line) ([0-9]+)', line)
-                if m is not None:
-                    if m.lastindex==2:
-                        self.error_lines += [int(m.group(2))]
-            output = ''.join(lines)
-            self.compilerWidget.delete("1.0", Tkinter.END)
-            self.compilerWidget.insert(Tkinter.END, output)
-
-        os.remove('.fhtyzbg.out')
-        os.remove('.flondgy.out')
-
+        self.check_or_compile(True)
 
     def highlight_current_line(self):
         self.textWidget.tag_remove("current_line", 1.0, "end")
@@ -358,14 +343,14 @@ class SimpleEditor:
         NXC uses
         """
         webbrowser.open("http://bricxcc.sourceforge.net/nbc/nxcdoc/nxcapi/index.html")
-        api_test = subprocess.check_output(['./nbc -api', 
+        api_test = subprocess.check_output([self.compiler + ' -api', 
                                         self.filename, 
                                         '-O={}.rxe'.format(self.filename)],
                                        stderr=subprocess.STDOUT) 
         print api_test
 
     def update_linenum_label(self, event):
-      self.lineLabel.config(text=self.textWidget.index('insert'))
+      self.lineLabel.config(text='Line: '+self.textWidget.index('insert'))
 
     def find_line_num(self, event):
         mouseIndex = "@%d,%d" % (event.x, event.y)
@@ -434,5 +419,11 @@ class SimpleEditor:
 
 if __name__ == "__main__":
     root = Tkinter.Tk()
-    editor = SimpleEditor(root)
+    # I want to tell SimpleEditor where the nbc compiler is
+    # the only way I've discovered how to do this when appifying a script
+    # is to get the name of the python file, strip the name off and that's
+    # the directory
+    appname = sys.argv[0]
+    match = re.search("(/.*/)SimpleEditor.py", appname)
+    editor = SimpleEditor(root, compiler=match.group(1)+'nbc')
     root.mainloop()
