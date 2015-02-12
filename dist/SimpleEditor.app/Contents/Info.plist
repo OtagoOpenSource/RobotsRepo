@@ -74,15 +74,14 @@
 	<key>PyRuntimeLocations</key>
 	<array>
 		<string>@executable_path/../Frameworks/Python.framework/Versions/2.7/Python</string>
-		<string>/System/Library/Frameworks/Python.framework/Versions/2.7/Python</string>
 	</array>
 	<key>PythonInfoDict</key>
 	<dict>
 		<key>PythonExecutable</key>
 		<string>/System/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python</string>
 		<key>PythonLongVersion</key>
-		<string>2.7.5 (default, Aug 25 2013, 00:04:04) 
-[GCC 4.2.1 Compatible Apple LLVM 5.0 (clang-500.0.68)]</string>
+		<string>2.7.6 (default, Sep  9 2014, 15:04:36) 
+[GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.39)]</string>
 		<key>PythonShortVersion</key>
 		<string>2.7</string>
 		<key>py2app</key>

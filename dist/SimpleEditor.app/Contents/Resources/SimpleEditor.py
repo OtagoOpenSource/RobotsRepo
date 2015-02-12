@@ -156,7 +156,8 @@ class SimpleEditor:
                 file.close()
                 self.textWidget.edit_modified(False)
                 self.rehighlight()
-                self.parent.title(self.filename)
+                dirs = self.filename.split('/')
+                self.parent.title(dirs[-1])
         else:
             editor = self.open_new_command()
 
