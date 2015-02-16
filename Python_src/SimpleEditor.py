@@ -426,7 +426,7 @@ if __name__ == "__main__":
     # the only way I've discovered how to do this when appifying a script
     # is to get the name of the python file, strip the name off and that's
     # the directory
-    appname = sys.argv[0]
-    match = re.search("(/.*/)SimpleEditor.py", appname)
-    editor = SimpleEditor(root, compiler=match.group(1)+'nbc')
+    # appname = sys.argv[0]
+    # match = re.search("(/.*/)SimpleEditor.py", appname)
+    editor = SimpleEditor(root, compiler='/usr/local/bin/nbc')
     root.mainloop()
