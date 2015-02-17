@@ -286,6 +286,7 @@ class SimpleEditor:
             self.compilerWidget.insert(Tkinter.END, output)
         except Exception as e:
             self.compilerWidget.insert(Tkinter.END, str(e))
+            print 'here'
         finally:
             cfile.close()
             nfile.close()
