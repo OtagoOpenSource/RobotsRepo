@@ -7,6 +7,7 @@ import Tkinter
 import ScrolledText
 #import update_mark
 import tkFileDialog
+import tkSimpleDialog
 import subprocess
 import tkMessageBox
 import re
@@ -17,6 +18,9 @@ import os
 import sys
 import tempfile
 
+# container class for tokens to be highlighted
+import highlighter
+
 # a global singleton list of windows
 AllWindows = []
 
@@ -26,7 +30,7 @@ class SimpleEditor:
     """
 
     # define tags for keywords, identifiers, numbers
-    tags = {'kw': '#090', 'int': 'red', 'id': 'purple'}
+    tags = {'keyword': '#c00', 'int': '#c00', 'identifier': '#960', 'function': '#009', 'macro': '#090', 'constant': '#090', 'struct': '#900', 'comment': '#a0f'}
 
     def __init__(self, parent, compiler='./nbc'):
         self.parent = parent
@@ -97,6 +101,7 @@ class SimpleEditor:
         self.editMenu = Tkinter.Menu(parent, tearoff=0)
         self.editMenu.add_command(label="Undo", command=self.undo_command, accelerator="Ctrl+Z")
         self.editMenu.add_command(label="Redo", command=self.redo_command, accelerator="Ctrl+Y")
+        self.editMenu.add_command(label="Font Size...", command=self.font_size_command)
         self.menuBar.add_cascade(label="Edit", menu=self.editMenu)
 
         self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
@@ -120,6 +125,9 @@ class SimpleEditor:
         # initialise the file associated with this window as ''
         self.filename = ''
         self.textWidget.edit_modified(False)
+
+        # timer variable to only highlight when user stops typing
+        self.highlight_timeout = None
 
         # add the new object to the list of all windows.
         AllWindows.append(self)
@@ -145,21 +153,29 @@ class SimpleEditor:
 
     def open_command(self):
         """
-        Open an existing file in the current window
+        Open an existing file in the current window via user input
         """
         if self.filename == '' and not self.textWidget.edit_modified():
             self.filename = tkFileDialog.askopenfilename()
             if self.filename != '':
-                file = open(self.filename, "rU")
-                contents = file.read()
-                self.textWidget.insert(Tkinter.END, contents)
-                file.close()
-                self.textWidget.edit_modified(False)
-                self.rehighlight()
-                dirs = self.filename.split('/')
-                self.parent.title(dirs[-1])
+              self._open_command(self.filename)
         else:
             editor = self.open_new_command()
+
+    def _open_command(self, filename):
+        """
+        Actually open an existing file in the current window
+        """
+        if filename == "":
+          print "open_command error: blank filename"
+        file = open(self.filename, "rU")
+        contents = file.read()
+        self.textWidget.insert(Tkinter.END, contents)
+        file.close()
+        self.textWidget.edit_modified(False)
+        self.rehighlight()
+        dirs = self.filename.split('/')
+        self.parent.title(dirs[-1])
 
     def save_command(self):
         """
@@ -341,6 +357,11 @@ class SimpleEditor:
         except:
             pass
 
+    def font_size_command(self):
+        newFontSize = tkSimpleDialog.askinteger("Set font size", "What font size would you like? (6-72).", minvalue=6, maxvalue=72)
+        if newFontSize != None:
+            self.textWidget.configure(font=('courier', newFontSize, 'normal'))
+
     def open_API(self):
         """
         Eventually pop up some form of useful information on functions that
@@ -372,51 +393,82 @@ class SimpleEditor:
         for tag in self.tags.keys():
             self.textWidget.tag_remove(tag, start, end)
 
+    # Resets/sets a timeout for re-highlighting (trying to reduce CPU usage).
     def key_press(self, key):
-        self.rehighlight()
+        if self.highlight_timeout != None:
+          self.parent.after_cancel(self.highlight_timeout)
+        self.highlight_timeout = self.parent.after(1500, self.rehighlight)
 
+    # Highlights tokens according to the Highlighter class.
     def rehighlight(self):
-        # loop through every line... VERY INEFFICIENT
-        lastline = int(self.textWidget.index(Tkinter.END).split('.')[0])
-        #cline = self.textWidget.index(Tkinter.INSERT).split('.')[0]
-        #now loop from line = 0 to line = lastline
-        for cline in range(0, lastline - 1):
-            lastcol = 0
-            char = self.textWidget.get('%d.%d'%(cline, lastcol))
-            # Stuck in infinite loop here :(
-            while char != '\n':
-                lastcol += 1
-                char = self.textWidget.get('%d.%d'%(cline, lastcol))
-                if lastcol > 80: # temp hack to break infinite loop
-                    break
-
-            buffer = self.textWidget.get('%d.%d'%(cline,0),'%d.%d'%(cline,lastcol))
-            tokenized = buffer.split(' ')
-
-            self.remove_tags('%d.%d'%(cline, 0), '%d.%d'%(cline, lastcol))
-
+        inMultilineComment = False
+        lastLine = int(self.textWidget.index(Tkinter.END).split('.')[0])
+        currentInsertLine = int(self.textWidget.index(Tkinter.INSERT).split('.')[0])
+        #now loop from line = 0 to line = lastLine
+        for loopLine in range(0, lastLine - 1):
+            # only rehighlight up to what might have changed
+            if loopLine > currentInsertLine and not inMultilineComment:
+                break
+            lastCol = int(self.textWidget.index('%d.end'%(loopLine)).split('.')[1])
+            self.remove_tags('%d.%d'%(loopLine, 0), '%d.%d'%(loopLine, lastCol))
             start, end = 0, 0
+            buffer = self.textWidget.get('%d.%d'%(loopLine,0),'%d.%d'%(loopLine,lastCol))
+            # SLASH-STAR COMMENTS
+            c_start = buffer.find("/*")
+            c_end = buffer.find("*/")
+            c_has_start = False
+            c_has_end = False
+            if c_start != -1:
+              c_has_start = True
+              inMultilineComment = True
+            if c_end != -1:
+              c_has_end = True
+              inMultilineComment = False
+            if c_has_start and c_has_end:
+                self.textWidget.tag_add('comment', '%d.%d'%(loopLine, c_start), '%d.%d'%(loopLine, c_end + 2)) # + 2 to include the '*/' at the end of the comment
+                buffer = buffer[c_end + 2:] # highlight from '*/' to end of line normally (+ 2 to skip the already-highlighted '*/')
+            elif c_has_start and not c_has_end:
+                self.textWidget.tag_add('comment', '%d.%d'%(loopLine, c_start), '%d.%d'%(loopLine, lastCol))
+                continue # go to next line, this line is fully highlighted
+            elif not c_has_start and c_has_end:
+                self.textWidget.tag_add('comment', '%d.%d'%(loopLine, 0), '%d.%d'%(loopLine, c_end + 2)) # + 2 to include the '*/' at the end of the comment
+                continue # go to next line, this line is fully highlighted
+            elif inMultilineComment:
+                self.textWidget.tag_add('comment', '%d.%d'%(loopLine, 0), '%d.%d'%(loopLine, lastCol))
+                continue # go to next line, this line is fully highlighted
+            # DOUBLE-SLASH COMMENTS
+            commentColumn = buffer.find("//")
+            if commentColumn != -1:
+                self.textWidget.tag_add('comment', '%d.%d'%(loopLine, commentColumn), '%d.%d'%(loopLine, lastCol))
+                buffer = buffer[:commentColumn] # only highlight from start of line to start of double-slash comment
+            # ALL OTHER TOKEN TYPES
+            nonword_regex = re.compile('\W')
+            tokenized = nonword_regex.split(buffer)
+            high = highlighter.Highlighter()
             for token in tokenized:
+                highlightedToken = True
                 end = start + len(token)
-                identifiers = ["bool", "byte", "char", "const", "enum", "float", "int", "long",
-                           "mutex", "short", "static", "string", "typedef", "unsigned",
-                           "struct"]
-                keywords = ["asm", "break", "case", "continue", "do", "if", "else",
-                "for", "goto", "priority", "repeat", "return", "start", "stop",
-                "switch", "until", "while", "default", "inline", "safecall",
-                "sub", "void", "true", "false"]
-                if token in keywords:
-                    self.textWidget.tag_add('kw', '%d.%d'%(cline, start), '%d.%d'%(cline, end))
-                elif token in identifiers:
-                    self.textWidget.tag_add('id', '%d.%d'%(cline, start), '%d.%d'%(cline, end))
-                else:
+                for tokenType, tokenTag in [(high.KEYWORDS, 'keyword'),
+                (high.IDENTIFIERS, 'identifier'),
+                (high.NXC_DEFS_FUNCTIONS, 'function'),
+                (high.NXC_DEFS_MACROS, 'macro'),
+                (high.NXC_DEFS_CONSTANTS, 'constant'),
+                (high.NXC_DEFS_STRUCTS, 'struct')]:
+                  if token in tokenType:
+                    self.textWidget.tag_add(tokenTag, '%d.%d'%(loopLine, start), '%d.%d'%(loopLine, end))
+                    highlightedToken = True
+                    break
+                # not any recognized token? Maybe it's a number
+                # (magic numbers are bad)
+                if not highlightedToken:
                     for index in range(len(token)):
                         try:
                             int(token[index])
                         except ValueError:
                             pass
                         else:
-                            self.textWidget.tag_add('int', '%d.%d'%(cline, start+index))
+                            self.textWidget.tag_add('int', '%d.%d'%(loopLine, start+index))
+                # finally, move to the next token
                 start += len(token)+1
 ### End Syntax Highlighting
 
@@ -430,4 +482,13 @@ if __name__ == "__main__":
     # appname = sys.argv[0]
     # match = re.search("(/.*/)SimpleEditor.py", appname)
     editor = SimpleEditor(root, compiler='/usr/local/bin/nbc')
+    # Open any command-line arguments not starting with '-' as files, until '--'
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            if arg == "--":
+                break
+            if len(arg) > 0 and arg[0] == '-':
+                continue
+            editor.filename = arg
+            editor._open_command(arg)
     root.mainloop()
