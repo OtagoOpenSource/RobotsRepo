@@ -19,7 +19,10 @@ import sys
 import tempfile
 
 # container class for tokens to be highlighted
-import highlighter
+import Highlighter
+
+# container class for function help
+import FunctionExplainer
 
 # a global singleton list of windows
 AllWindows = []
@@ -30,7 +33,7 @@ class SimpleEditor:
     """
 
     # define tags for keywords, identifiers, numbers
-    tags = {'keyword': '#c00', 'int': '#c00', 'identifier': '#960', 'function': '#009', 'macro': '#090', 'constant': '#090', 'struct': '#900', 'comment': '#a0f'}
+    tags = {'keyword': '#960', 'int': '#c00', 'identifier': '#960', 'function': '#009', 'macro': '#a0f', 'constant': '#a0f', 'struct': '#900', 'comment': '#090'}
 
     def __init__(self, parent, compiler='./nbc'):
         self.parent = parent
@@ -115,10 +118,11 @@ class SimpleEditor:
                 command = self.prev_error)
         self.menuBar.add_cascade(label="Compile", menu=self.commandMenu)
 
-        self.commandMenu = Tkinter.Menu(self.menuBar, tearoff=0)
-        self.commandMenu.add_command(label="NXC Help (opens webpage)", 
+        self.helpMenu = Tkinter.Menu(self.menuBar, tearoff=0)
+        self.helpMenu.add_command(label="Explain selected function...", command=self.function_explain_command, accelerator="Ctrl+Shift+H")
+        self.helpMenu.add_command(label="NXC Help (opens webpage)",
                                      command=self.open_API)
-        self.menuBar.add_cascade(label="Help", menu=self.commandMenu);
+        self.menuBar.add_cascade(label="Help", menu=self.helpMenu);
 
         parent.config(menu=self.menuBar)
 
@@ -323,7 +327,9 @@ class SimpleEditor:
         self.textWidget.tag_remove("current_line", 1.0, "end")
         self.textWidget.tag_add("current_line", "insert linestart", "insert lineend")
 
+    # XXX go to "line + 1" since compiler starts at '0' and editor starts at '1'
     def goto_line(self, linenum):
+        linenum += 1
         index = "%d.%d" % (linenum, 0)
         self.textWidget.mark_set("insert", index)
         self.textWidget.see(index)
@@ -362,6 +368,19 @@ class SimpleEditor:
         if newFontSize != None:
             self.textWidget.configure(font=('courier', newFontSize, 'normal'))
 
+    # Explains selected text via pop-up
+    def function_explain_command(self):
+        selectedFunction = self.textWidget.selection_get()
+        functionExplainer = FunctionExplainer.FunctionExplainer()
+        if selectedFunction in functionExplainer.knownFunctions:
+            helpfulInformation = functionExplainer.knownFunctions[selectedFunction]
+            for additionalInfo in functionExplainer.knownParameters:
+                if additionalInfo in helpfulInformation:
+                    helpfulInformation += '\n' + functionExplainer.knownParameters[additionalInfo]
+            tkMessageBox.showinfo("Help for \"" + selectedFunction + "\"", helpfulInformation)
+        else:
+            tkMessageBox.showwarning("Help for \"" + selectedFunction + "\"", "I don't know anything about that. Sorry.")
+
     def open_API(self):
         """
         Eventually pop up some form of useful information on functions that
@@ -377,6 +396,8 @@ class SimpleEditor:
     def update_linenum_label(self, event):
       self.lineLabel.config(text='Line: '+self.textWidget.index('insert'))
 
+    # Assumes compiler errors occupy four lines, moves to appropriate error
+    # line when user clicks in the compiler output window
     def find_line_num(self, event):
         mouseIndex = "@%d,%d" % (event.x, event.y)
         index = self.compilerWidget.index(mouseIndex)
@@ -444,7 +465,7 @@ class SimpleEditor:
             # ALL OTHER TOKEN TYPES
             nonword_regex = re.compile('\W')
             tokenized = nonword_regex.split(buffer)
-            high = highlighter.Highlighter()
+            high = Highlighter.Highlighter()
             for token in tokenized:
                 highlightedToken = True
                 end = start + len(token)
